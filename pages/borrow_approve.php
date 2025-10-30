@@ -1,0 +1,65 @@
+<?php
+// pages/borrow_approve.php
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_login();
+$user = $_SESSION['user'];
+$role = $user['role'];
+
+if (!in_array($role, ['เจ้าหน้าที่','หัวหน้าเจ้าหน้าที่'])) {
+  echo "<div class='alert alert-danger'>สิทธิ์ไม่เพียงพอ</div>";
+  return;
+}
+
+if ($role === 'เจ้าหน้าที่'){
+  $rs = $mysqli->prepare("SELECT * FROM borrow_slip WHERE B_NAME_officer=? AND b_status='รอเจ้าหน้าที่อนุมัติ' ORDER BY b_id DESC");
+  $rs->bind_param("s", $user['username']);
+  $rs->execute();
+  $result = $rs->get_result();
+} else {
+  $rs = $mysqli->prepare("SELECT * FROM borrow_slip WHERE B_NAME_APPROVER=? AND b_status='รอหัวหน้าเจ้าหน้าที่อนุมัติ' ORDER BY b_id DESC");
+  $rs->bind_param("s", $user['username']);
+  $rs->execute();
+  $result = $rs->get_result();
+}
+?>
+
+<h3>อนุมัติการยืม (<?=htmlspecialchars($role)?>)</h3>
+<table class="table table-bordered">
+  <thead><tr><th>#</th><th>ผู้ยืม</th><th>วันยืม</th><th>วันคืน</th><th>อุปกรณ์</th><th>-</th></tr></thead>
+  <tbody>
+<?php while($r = $result->fetch_assoc()){
+  // load equipment list
+  $qr = $mysqli->query("SELECT e.E_NAME FROM borrow_equipment be JOIN equipment e ON be.e_id=e.E_id WHERE be.b_id={$r['b_id']}");
+  $elist = [];
+  while($ee = $qr->fetch_assoc()) $elist[] = htmlspecialchars($ee['E_NAME']);
+  echo "<tr>
+    <td>{$r['b_id']}</td>
+    <td>".htmlspecialchars($r['u_name'])."</td>
+    <td>".htmlspecialchars($r['b_borrow_date'])."</td>
+    <td>".htmlspecialchars($r['b_return_date'])."</td>
+    <td>".implode('<br>',$elist)."</td>
+    <td>
+      <button class='btn btn-sm btn-success' onclick='approve({$r['b_id']})'>อนุมัติ</button>
+      <button class='btn btn-sm btn-danger' onclick='reject({$r['b_id']})'>ไม่อนุมัติ</button>
+    </td>
+  </tr>";
+} ?>
+  </tbody>
+</table>
+
+<script>
+function approve(id){
+  $.post('actions/borrow_action.php',{action_type:'approve',b_id:id}, function(resp){
+    try{ var r=JSON.parse(resp);}catch(e){ alert('error'); return; }
+    if(r.ok) location.reload(); else alert(r.msg||'ผิดพลาด');
+  });
+}
+function reject(id){
+  if(!confirm('ไม่อนุมัติ?')) return;
+  $.post('actions/borrow_action.php',{action_type:'reject',b_id:id}, function(resp){
+    try{ var r=JSON.parse(resp);}catch(e){ alert('error'); return; }
+    if(r.ok) location.reload(); else alert(r.msg||'ผิดพลาด');
+  });
+}
+</script>
