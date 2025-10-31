@@ -29,7 +29,7 @@ $role = $user['u_role'] ?? '';
         <li class="nav-item"><a class="nav-link" href="index.php?page=dashboard">หน้าแรก</a></li>
         <li class="nav-item"><a class="nav-link" href="index.php?page=equipment">รายการอุปกรณ์</a></li>
         <li class="nav-item"><a class="nav-link" href="index.php?page=borrow_list">ใบยืม-คืน</a></li>
-        <?php if(isset($_SESSION['user']) && in_array($_SESSION['user']['role'], ['เจ้าหน้าที่','หัวหน้าเจ้าหน้าที่'])): ?>
+        <?php if(isset($_SESSION['user']) && in_array($_SESSION['user']['u_role'], ['OPERATOR','ADMIN'])): ?>
           <li class="nav-item"><a class="nav-link" href="index.php?page=borrow_approve">อนุมัติการยืม</a></li>
         <?php endif; ?>
         <?php if(isset($_SESSION['user']) && $_SESSION['user']['role'] === 'ผู้ดูแลระบบ'): ?>

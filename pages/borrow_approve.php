@@ -4,21 +4,21 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_login();
 $user = $_SESSION['user'];
-$role = $user['role'];
+$role = $user['u_role'];
 
-if (!in_array($role, ['เจ้าหน้าที่','หัวหน้าเจ้าหน้าที่'])) {
+if (!in_array($role, ['OPERATOR','ADMIN'])) {
   echo "<div class='alert alert-danger'>สิทธิ์ไม่เพียงพอ</div>";
   return;
 }
 
-if ($role === 'เจ้าหน้าที่'){
-  $rs = $mysqli->prepare("SELECT * FROM borrow_slip WHERE B_NAME_officer=? AND b_status='รอเจ้าหน้าที่อนุมัติ' ORDER BY b_id DESC");
-  $rs->bind_param("s", $user['username']);
+if ($role === 'ADMIN'){
+  $rs = $mysqli->prepare("SELECT * FROM borrow_slip WHERE b_status = 1 ORDER BY b_id DESC");
+  //  $rs->bind_param("s", $user['u_idp']);
   $rs->execute();
   $result = $rs->get_result();
 } else {
-  $rs = $mysqli->prepare("SELECT * FROM borrow_slip WHERE B_NAME_APPROVER=? AND b_status='รอหัวหน้าเจ้าหน้าที่อนุมัติ' ORDER BY b_id DESC");
-  $rs->bind_param("s", $user['username']);
+  $rs = $mysqli->prepare("SELECT * FROM borrow_slip WHERE b_status = 1 ORDER BY b_id DESC");
+  //  $rs->bind_param("s", $user['u_idp']);
   $rs->execute();
   $result = $rs->get_result();
 }
@@ -30,14 +30,14 @@ if ($role === 'เจ้าหน้าที่'){
   <tbody>
 <?php while($r = $result->fetch_assoc()){
   // load equipment list
-  $qr = $mysqli->query("SELECT e.E_NAME FROM borrow_equipment be JOIN equipment e ON be.e_id=e.E_id WHERE be.b_id={$r['b_id']}");
+  $qr = $mysqli->query("SELECT e.E_NAME FROM borrow_equipment be JOIN equipments e ON be.E_id=e.E_id WHERE be.B_ID={$r['b_id']}");
   $elist = [];
   while($ee = $qr->fetch_assoc()) $elist[] = htmlspecialchars($ee['E_NAME']);
   echo "<tr>
     <td>{$r['b_id']}</td>
     <td>".htmlspecialchars($r['u_name'])."</td>
-    <td>".htmlspecialchars($r['b_borrow_date'])."</td>
-    <td>".htmlspecialchars($r['b_return_date'])."</td>
+    <td>".htmlspecialchars($r['b_date_borrow'])."</td>
+    <td>".htmlspecialchars($r['b_date_receive'])."</td>
     <td>".implode('<br>',$elist)."</td>
     <td>
       <button class='btn btn-sm btn-success' onclick='approve({$r['b_id']})'>อนุมัติ</button>
