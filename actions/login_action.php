@@ -31,7 +31,7 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 // --- Check user and password ---
-if ($user && $u_password === $user['u_password']) {
+if ($user && password_verify($u_password, $user['u_password'])) {
     // --- Login success ---
     $_SESSION['user'] = [
         'u_id' => $user['u_id'],
