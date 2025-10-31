@@ -65,6 +65,26 @@ $rs = $stmt->get_result();
           <button class="btn btn-sm btn-warning ret" data-id="<?= (int)$r['b_id'] ?>">คืน</button>
         <?php endif; ?>
       </td>
+      <?php
+// ตรวจสอบว่ามีอุปกรณ์หรือไม่
+$hasEquip = $mysqli->query("SELECT COUNT(*) as cnt FROM borrow_equipment WHERE b_id={$r['b_id']}")->fetch_assoc()['cnt'];
+?>
+<td>
+    <?php if(in_array($r['b_status'], ['รอเพิ่มอุปกรณ์','รอเจ้าหน้าที่อนุมัติ'])): ?>
+        <button class="btn btn-sm btn-info edit " data-item='<?= $json_item ?>'>แก้ไข</button>
+        <button class="btn btn-sm btn-danger del" data-id="<?= (int)$r['b_id'] ?>">ลบ</button>
+    <?php endif; ?>
+    <?php if($r['b_status'] === 'รอเพิ่มอุปกรณ์'): ?>
+        <button class="btn btn-sm btn-secondary addEq" data-id="<?= (int)$r['b_id'] ?>">เพิ่มอุปกรณ์</button>
+        <?php if($hasEquip > 0): ?>
+            <button class="btn btn-sm btn-primary submitReq" data-id="<?= (int)$r['b_id'] ?>">ส่งคำขอ</button>
+        <?php endif; ?>
+    <?php endif; ?>
+    <?php if($r['b_status'] === 'กำลังยืม'): ?>
+        <button class="btn btn-sm btn-warning ret" data-id="<?= (int)$r['b_id'] ?>">คืน</button>
+    <?php endif; ?>
+</td>
+
     </tr>
   <?php endwhile; ?>
   </tbody>
