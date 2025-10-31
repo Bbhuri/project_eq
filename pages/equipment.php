@@ -207,7 +207,14 @@ $('.btn-del').click(function(){
 // แสดงรูป preview ตอนเลือกไฟล์ใหม่
 $('#E_IMG').on('change', function(){
     const file = this.files[0];
-    if(file){
+    if (file) {
+        if (file.size > 2 * 1024 * 1024) { // 2 MB
+            alert('❌ File too large! Please upload an image under 2 MB.');
+            $(this).val(''); // Clear file input
+            $('#previewImg').hide();
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = e => {
             $('#previewImg').attr('src', e.target.result).show();
@@ -215,6 +222,7 @@ $('#E_IMG').on('change', function(){
         reader.readAsDataURL(file);
     }
 });
+
 
 // เมื่อคลิก "แก้ไข"
 $('.btn-edit').click(function(){
