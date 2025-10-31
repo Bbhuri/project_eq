@@ -37,21 +37,48 @@ $equipments = $mysqli->query("SELECT * FROM equipments ORDER BY E_ID DESC");
             <td><?= htmlspecialchars($r['E_TYPE_ID']) ?></td>
             <td><?= htmlspecialchars($r['E_SN']) ?></td>
             <td>
-                <?php if(!empty($r['E_IMG'])): ?>
-                    <img src="data:image/jpeg;base64,<?= base64_encode($r['E_IMG']) ?>" width="60">
-                <?php endif; ?>
-            </td>
+ <?php if (!empty($r['E_IMG'])): ?>
+    <img src="data:image/jpeg;base64,<?= base64_encode($r['E_IMG']) ?>"
+         style="max-width:200px; height:auto; border-radius:5px; box-shadow:0 0 5px rgba(0,0,0,0.2);">
+<?php else: ?>
+    <span class="text-muted">ไม่มีรูป</span>
+<?php endif; ?>
             <td><?= htmlspecialchars($r['E_STATUS']) ?></td>
             <td><?= htmlspecialchars($r['E_ADDRESS']) ?></td>
             <td>
                 <button class="btn btn-warning btn-sm btn-edit"
-                        data-item='<?= json_encode($r, JSON_UNESCAPED_UNICODE) ?>'>แก้ไข</button>
+  data-id="<?= $r['E_ID'] ?>"
+  data-name="<?= htmlspecialchars($r['E_NAME']) ?>"
+  data-type="<?= htmlspecialchars($r['E_TYPE_ID']) ?>"
+  data-sn="<?= htmlspecialchars($r['E_SN']) ?>"
+  data-status="<?= htmlspecialchars($r['E_STATUS']) ?>"
+  data-address="<?= htmlspecialchars($r['E_ADDRESS']) ?>"
+  data-img="<?= !empty($r['E_IMG']) ? '1' : '0' ?>"
+
+>แก้ไข</button>
+
                 <button class="btn btn-danger btn-sm btn-del" data-id="<?= $r['E_ID'] ?>">ลบ</button>
             </td>
         </tr>
         <?php endwhile; ?>
     </tbody>
 </table>
+<!-- Modal แสดงภาพใหญ่ -->
+<div class="modal fade" id="imgModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center bg-transparent border-0">
+      <img id="modalImg" style="max-width:100%; border-radius:10px;">
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).on('click', '.img-click', function(){
+  $('#modalImg').attr('src', $(this).attr('src'));
+  $('#imgModal').modal('show');
+});
+</script>
+
 
 <!-- Modal -->
 <div class="modal fade" id="equipModal" tabindex="-1">
@@ -77,9 +104,14 @@ $equipments = $mysqli->query("SELECT * FROM equipments ORDER BY E_ID DESC");
         <input type="text" class="form-control" name="E_SN" id="E_SN" required>
     </div>
     <div class="mb-2">
-        <label>รูป</label>
-        <input type="file" class="form-control" name="E_IMG" id="E_IMG">
-    </div>
+  <label>รูป</label>
+  <input type="file" class="form-control" name="E_IMG" id="E_IMG">
+  <input type="hidden" name="E_HAS_IMG" id="E_HAS_IMG">
+  <div class="mt-2 text-center">
+    <img id="previewImg" src="" style="max-width:300px; display:none; border:1px solid #ccc; border-radius:5px;">
+  </div>
+</div>
+
      <div class="mb-2">
         <label>สถานะ</label>
         <select class="form-select" name="E_STATUS" id="E_STATUS" required>
@@ -115,18 +147,19 @@ $('#btnAdd').click(function(){
     equipModal.show();
 });
 
-// แก้ไข
+// เมื่อคลิก "แก้ไข"
 $('.btn-edit').click(function(){
-    let item = $(this).data('item');
-    $('#E_ID').val(item.E_ID);
-    $('#E_NAME').val(item.E_NAME);
-    $('#E_TYPE_ID').val(item.E_TYPE_ID);
-    $('#E_SN').val(item.E_SN);
-    $('#E_STATUS').val(item.E_STATUS);
-    $('#E_ADDRESS').val(item.E_ADDRESS);
-    $('#btnSave').data('action', 'edit'); // Set the action to 'edit'
+    $('#E_ID').val($(this).data('id'));
+    $('#E_NAME').val($(this).data('name'));
+    $('#E_TYPE_ID').val($(this).data('type'));
+    $('#E_SN').val($(this).data('sn'));
+    $('#E_STATUS').val($(this).data('status'));
+    $('#E_ADDRESS').val($(this).data('address'));
+    $('#previewImg').hide(); // ถ้าอยากให้โชว์รูปเก่า ต้องเพิ่ม logic ต่ออีกนิด (ดูด้านล่าง)
+    $('#btnSave').data('action', 'edit');
     equipModal.show();
 });
+
 
 // บันทึก
 $('#btnSave').click(function(){
@@ -170,6 +203,51 @@ $('.btn-del').click(function(){
         alert('❌ ไม่สามารถเชื่อมต่อ Server ได้');
     });
 });
+
+// แสดงรูป preview ตอนเลือกไฟล์ใหม่
+$('#E_IMG').on('change', function(){
+    const file = this.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = e => {
+            $('#previewImg').attr('src', e.target.result).show();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// เมื่อคลิก "แก้ไข"
+$('.btn-edit').click(function(){
+    let item = $(this).data('item');
+    $('#E_ID').val(item.E_ID);
+    $('#E_NAME').val(item.E_NAME);
+    $('#E_TYPE_ID').val(item.E_TYPE_ID);
+    $('#E_SN').val(item.E_SN);
+    $('#E_STATUS').val(item.E_STATUS);
+    $('#E_ADDRESS').val(item.E_ADDRESS);
+
+    // แสดงรูปเดิมใน modal
+    if (item.E_IMG) {
+        $('#previewImg')
+          .attr('src', 'data:image/jpeg;base64,' + btoa(item.E_IMG))
+          .show();
+    } else {
+        $('#previewImg').hide();
+    }
+
+    $('#btnSave').data('action', 'edit');
+    equipModal.show();
+});
+
+$('#E_HAS_IMG').val($(this).data('img'));
+if ($(this).data('img') == 1) {
+    const imgTag = $(this).closest('tr').find('img').attr('src');
+    $('#previewImg').attr('src', imgTag).show();
+} else {
+    $('#previewImg').hide();
+}
+
+
 </script>
 </body>
 </html>

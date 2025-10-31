@@ -79,10 +79,11 @@ $rs = $stmt->get_result();
             </div>
             <div class="modal-body">
                 <input type="hidden" name="b_id" id="b_id" value="0">
-                <div class="mb-2"><input type="hidden" class="form-control" name="u_idp" id="u_idp" placeholder="รหัสประจำตัว" value="<?= htmlspecialchars($_SESSION['user']['u_idp'], ENT_QUOTES, 'UTF-8'); ?>" ></div>
-                <div class="mb-2"><input class="form-control" name="u_name" id="u_name" placeholder="ชื่อผู้ยืม" value="<?= htmlspecialchars($_SESSION['user']['u_name'], ENT_QUOTES, 'UTF-8'); ?>" readonly ></div>
+                <div class="mb-2"><input  type="hidden" class="form-control" name="u_idp" id="u_idp" placeholder="รหัสประจำตัว" value="<?= htmlspecialchars($_SESSION['user']['u_idp'], ENT_QUOTES, 'UTF-8'); ?>" ></div>
+                <div class="mb-2"><input class="form-control" name="u_name" id="u_name" placeholder="ชื่อผู้ยืม"  ></div>
                 <div class="mb-2"><input class="form-control" name="u_phone" id="u_phone" placeholder="เบอร์โทร"></div>
-                <div class="mb-2"><input type="hidden" class="form-control" name="u_unit" id="u_unit" placeholder="รหัสประจำตัว" value="<?= htmlspecialchars($_SESSION['user']['u_unit'], ENT_QUOTES, 'UTF-8'); ?>"></div>
+                <div class="mb-2"><input class="form-control" name="u_phone" id="b_date" placeholder="วันที่ยืม"></div>
+                <div class="mb-2"><input class="form-control" name="u_unit" id="u_unit" placeholder="ชื่อหน่วยผู้ยืม" ></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
