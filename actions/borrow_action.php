@@ -92,6 +92,19 @@ try {
             $stmt->execute();
             echo json_encode(['ok'=>true]);
             break;
+            //ส่งคำขอ
+case  'send_request' :
+    $b_id = intval($_POST['b_id'] ?? 0);
+    $u_idp = $_SESSION['user']['u_idp'];
+    if($b_id > 0){
+        $stmt = $mysqli->prepare("UPDATE borrow_slip SET b_status=1 WHERE b_id=? AND u_idp=?");
+        $stmt->bind_param('is', $b_id, $u_idp);
+        $ok = $stmt->execute();
+        echo json_encode(['ok'=>$ok, 'error'=>$stmt->error]);
+    } else {
+        echo json_encode(['ok'=>false,'error'=>'ไม่พบ ID']);
+    }
+    break;
 
         default:
             throw new Exception('Action ไม่ถูกต้อง');
@@ -99,3 +112,6 @@ try {
 }catch(Exception $e){
     echo json_encode(['ok'=>false,'error'=>$e->getMessage()]);
 }
+
+
+
